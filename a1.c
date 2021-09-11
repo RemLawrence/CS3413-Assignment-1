@@ -27,10 +27,19 @@ Job createJob(char* userName, char* processId, int arrival, int duration) {
     return job;
 }
 
+
 typedef struct {
     char* userName;
     int finishTime;
 }User;
+
+User createUser(char* userName, int finishTime) {
+    User user;
+    user.userName = userName;
+    user.finishTime = finishTime;
+    return user;
+}
+
 
 // A Linked List
 struct node
@@ -83,11 +92,8 @@ void insertJobQueue(struct node **head, Job job) {
             // FCFS then
             if (jobQueueInProcess->job.arrival < newJobQueue->job.arrival) {
                 jobQueueInProcess -> next = newJobQueue;
-                //printf("jobQueueInProcess -> next %s\n", jobQueueInProcess -> next->job.userName);
-                //(*head) = newJobQueue;
             }
         }
-        /*
         else {
             while (jobQueueInProcess -> next != NULL && jobQueueInProcess->next->job.duration < job.duration) {
                 jobQueueInProcess = jobQueueInProcess -> next; // iterate the linked list to find where the newJobQueue should go
@@ -95,12 +101,8 @@ void insertJobQueue(struct node **head, Job job) {
             newJobQueue -> next = jobQueueInProcess -> next;
             jobQueueInProcess -> next = newJobQueue;
         }
-        */
-        
     }
 }
-
-
 
 void delete_highest_priority(struct node** head) {
     if((*head) == NULL){
@@ -108,20 +110,13 @@ void delete_highest_priority(struct node** head) {
     }
     else {
         struct node *finishedJobQueue = (*head);
-        //printf("NEXT Process id %s duration %d\n", (*head)->next->job.processId, (*head)->next->job.duration);
         (*head) = (*head)->next;
         free(finishedJobQueue); // delete head
-        //printf("The deleted job is %s\n", finishedJobQueue->job.userName);
     }
 }
 
 // Time simulator
 void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
-    //printf("%d\n", jobArray[0].arrival); // why null?
-    //printf("%d\n", jobArray[1].arrival); // why null?
-    //printf("%d\n", jobArray[2].arrival); // why null?
-    //printf("%d\n", jobArray[3].arrival); // why null?
-    //printf("total process time %d\n", totalProcessTime); // why null?
 
     int time = jobArray[0].arrival; // Timer. Will start from 2
 
@@ -132,9 +127,7 @@ void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
         if (jobArray[0].arrival == time) { // if the job's arrival time is at this time, do a pre-emption instead of increasing the time.
             if(time == 2 && !node_created) { // this is for enqueuing the first node(job)
                 (*head) = createJobQueue(jobArray[0]); // initialize the queue
-                //printf("1.jobArray[0].duration %d\n", jobArray[0].duration);
                 jobArray = (Job*)jobArray+1; // Increment the pointer to point to the next element of the job array
-                //printf("2.jobArray[0].duration %d\n", jobArray[0].duration);
                 node_created = !node_created;
             }
             else {
@@ -145,7 +138,6 @@ void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
                 
                 insertJobQueue(head, jobArray[0]);
                 jobArray = (Job*)jobArray + 1; // Increment the pointer to point to the next element of the job array
-                //printf("3.jobArray[0].duration %d\n", jobArray[0].duration);
             }
             
         }
@@ -159,7 +151,6 @@ void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
             // Or could say, start the next job in this time
             (*head)->job.duration = (*head)->job.duration-1;
             
-            //printf("Process id %s duration %d\n", (*head)->job.processId, (*head)->job.duration);
             printf("%d\t%s\n", time, (*head)->job.processId);
             time++;
             totalProcessTime--;
@@ -172,14 +163,14 @@ char* userName;
 char* processId;
 int arrival;
 int duration;
-Job jobArray[4];
+Job* jobArray;
+User* userArray;
 
 int totalProcessTime = 0; // Should be 15, added the duration for all jobs.
 struct node *head; // Pointer to the head of the priority queue(linked list)
 
 void parseTextInput() {
     int index = 0; // This index is used for tracking the Job index
-    //int highest_priority = 0;
     char line[64]; // Input file lines to read
 
     // Skip the header
@@ -197,9 +188,9 @@ void parseTextInput() {
     }
 }
 
-
-
 int main(int argc, char **argv) {
+    jobArray = (Job*)malloc(100*sizeof(Job));
+    userArray = (User*)malloc(100*sizeof(User));
 
     parseTextInput();
     scheduleProcess(&head, jobArray, totalProcessTime);
