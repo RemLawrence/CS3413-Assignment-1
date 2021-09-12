@@ -110,10 +110,6 @@ struct node
     struct node *next;
 };
 
-/***********************************************
- * returns a new Node struct
- * expect the value to set the Node to
- */
 struct node* createJobQueue(Job job) {
     struct node *newJobQueue = (struct node*)malloc(sizeof(struct node));
     newJobQueue -> job = job;
@@ -123,8 +119,7 @@ struct node* createJobQueue(Job job) {
 }
 
 /***********************************************
- * returns a new Node struct
- * expect the value to set the Node to
+ * Using Shortest-Job-First to insert the Job queue into the priority queue
  */
 void insertJobQueue(struct node **head, Job job) {
     struct node *newJobQueue = createJobQueue(job);
@@ -174,6 +169,10 @@ void insertJobQueue(struct node **head, Job job) {
     }
 }
 
+/***********************************************
+ * Delete the current processing job queue from the priority queue
+ * if the job is completed (duration == 0)
+ */
 void delete_highest_priority(struct node** head) {
     if((*head) == NULL){
         printf("The priority queue is empty");
