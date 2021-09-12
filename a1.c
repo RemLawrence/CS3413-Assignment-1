@@ -121,7 +121,7 @@ struct node* createJobQueue(Job job) {
     newJobQueue -> job = job;
     newJobQueue -> priority = 0; // this is the first queue, so set the priority to 0 (default highest priority)
     newJobQueue -> next = NULL;
-
+    printf("Created job's userName %s\n", newJobQueue->job.userName);
     return newJobQueue; // node created and return it
 }
 
@@ -131,7 +131,6 @@ struct node* createJobQueue(Job job) {
  */
 void insertJobQueue(struct node **head, Job job) {
     struct node *newJobQueue = createJobQueue(job);
-
     // need to travel the list
     struct node *jobQueueInProcess = (*head);
     // First check if head's arrival time equals to the new job's arrival time, then compare their duration
@@ -188,7 +187,7 @@ void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
     printf("%s\n","Time\tJob");
     while (totalProcessTime > 0) {
 
-        if (jobArray[0].arrival == time) { // if the job's arrival time is at this time, do a pre-emption instead of increasing the time.
+        if (jobArray[0].arrival == time && jobArray[0].userName != NULL) { // if the job's arrival time is at this time, do a pre-emption instead of increasing the time.
             if(!job_queue_created) { // this is ONLY for enqueuing the first node(job)
                 (*head) = createJobQueue(jobArray[0]); // initialize the queue
                 jobArray = (Job*)jobArray+1; // Increment the pointer to point to the next element of the job array
