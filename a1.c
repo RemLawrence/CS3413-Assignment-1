@@ -140,12 +140,16 @@ void insertJobQueue(struct node **head, Job job) {
             (*head) = newJobQueue; // then newJob should be the head (aka. jobInProcess), since it has the highest priority
         }
         else {
+            while(jobQueueInProcess -> next != NULL && jobQueueInProcess->next->job.duration < job.duration) {
+                jobQueueInProcess = jobQueueInProcess -> next; // iterate the linked list to find where the newJobQueue should go
+            }
             //Else, the new job should have a lower priority
+            newJobQueue -> next = jobQueueInProcess -> next;
             jobQueueInProcess -> next = newJobQueue;
         }
-        
     }
     else {
+        // If their arrival are not the same... then compare duration
         if (jobQueueInProcess->job.duration > job.duration) {
             newJobQueue -> next = jobQueueInProcess;
             (*head) = newJobQueue;
