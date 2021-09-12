@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 /*
     1.Text parser
@@ -37,9 +38,54 @@ User createUser(char* userName, int finishTime) {
     User user;
     user.userName = userName;
     user.finishTime = finishTime;
+    //printf("User created %s\n", userName);
     return user;
 }
 
+bool checkIfUserDuplicates(User* userArray, int userArrayLength, char* userName) {
+    int userArrayIndex = 0; // This index is for to iterate through the userArray
+    while(userArrayIndex != userArrayLength) {
+        // If they have the same userName, they we shouldn't add new user
+        if (strcmp(userArray[userArrayIndex].userName, userName) == 0) {
+            return true;
+        }
+        userArrayIndex++;
+    }
+    return false;
+}
+
+void updateUserFinishTime(User* userArray, char* userName, int userArrayLength, int finishTime) {
+    int userArrayIndex = 0; // This index is for to iterate through the userArray
+    //printf("updated finish time %d\n", finishTime);
+    while(userArrayIndex != userArrayLength) {
+        if (strcmp(userArray[userArrayIndex].userName, userName) == 0) {
+            userArray[userArrayIndex].finishTime = finishTime;
+            break;
+        }
+        userArrayIndex++;
+    }
+}
+
+void printUserSummary(User* userArray, int userArrayLength) {
+    printf("Summary\n");
+    int userArrayIndex = 0; // This index is for to iterate through the userArray
+    while(userArrayIndex != userArrayLength) {
+        printf("%s\t%d\n",userArray[userArrayIndex].userName, userArray[userArrayIndex].finishTime);
+        userArrayIndex++;
+    }
+}
+
+char* userName;
+char* processId;
+int arrival;
+int duration;
+Job* jobArray;
+User* userArray;
+int jobArrayIndex = 0; // This index is used for tracking the Job index
+int userArrayIndex = 0;
+
+int totalProcessTime = 0; // Should be 15, added the duration for all jobs.
+struct node *head; // Pointer to the head of the priority queue(linked list)
 
 // A Linked List
 struct node
@@ -118,21 +164,24 @@ void delete_highest_priority(struct node** head) {
 // Time simulator
 void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
 
-    int time = jobArray[0].arrival; // Timer. Will start from 2
+    int time = jobArray[0].arrival; // Timer. (Will start from 2)
 
-    bool node_created = false; // switch for creating a new node.
+    bool job_queue_created = false; // switch for creating a new node.
+
     printf("%s\n","Time\tJob");
-    while (totalProcessTime > 0) {
+    while (totalProcessTime >= 0) {
 
         if (jobArray[0].arrival == time) { // if the job's arrival time is at this time, do a pre-emption instead of increasing the time.
-            if(time == 2 && !node_created) { // this is for enqueuing the first node(job)
+            if(!job_queue_created) { // this is ONLY for enqueuing the first node(job)
                 (*head) = createJobQueue(jobArray[0]); // initialize the queue
                 jobArray = (Job*)jobArray+1; // Increment the pointer to point to the next element of the job array
-                node_created = !node_created;
+                job_queue_created = !job_queue_created;
             }
             else {
                 // If the current job is done, deque it
                 if((*head)->job.duration == 0) {
+                    //printf("%s finished at %d\n", userArray[userArrayIndex].userName, userArray[userArrayIndex].finishTime);
+                    updateUserFinishTime(userArray, (*head)->job.userName, userArrayIndex, time); // Update user's finish time
                     delete_highest_priority(head);
                 }
                 
@@ -144,7 +193,14 @@ void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
         else {
             // If the current job is done, deque it (this job is being processed in the last time)
             if((*head)->job.duration == 0) {
+                //printf("%s finished at %d\n", userArray[userArrayIndex].userName, userArray[userArrayIndex].finishTime);
+                updateUserFinishTime(userArray, (*head)->job.userName, userArrayIndex, time); // Update user's finish time
                 delete_highest_priority(head);
+
+                if (totalProcessTime == 0){
+                    // If the process time is end, then break now! To prevent segfault
+                    break;
+                }
             }
 
             // If the current job is not done, keep doing it in the next time
@@ -159,19 +215,10 @@ void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
     printf("%d\t%s\n\n", time, "IDLE");
 }
 
-char* userName;
-char* processId;
-int arrival;
-int duration;
-Job* jobArray;
-User* userArray;
-
-int totalProcessTime = 0; // Should be 15, added the duration for all jobs.
-struct node *head; // Pointer to the head of the priority queue(linked list)
-
 void parseTextInput() {
-    int index = 0; // This index is used for tracking the Job index
     char line[64]; // Input file lines to read
+
+    bool ifUserDuplicates = false;
 
     // Skip the header
     fgets(line, sizeof(line), stdin);
@@ -180,10 +227,21 @@ void parseTextInput() {
         userName = (char*)malloc(sizeof(char)*10);
         processId = (char*)malloc(sizeof(char)*20);
         sscanf(line, "%s %s %d %d", userName, processId, &arrival, &duration);
+
         Job job = createJob(userName, processId, arrival, duration);
+        jobArray[jobArrayIndex] = job; // Add each job to the job array
+
+        if(userArrayIndex != 0) { // Do not check duplicates if the userArray is null
+            ifUserDuplicates = checkIfUserDuplicates(userArray, userArrayIndex, userName);
+        }
+        if(!ifUserDuplicates){
+            User user = createUser(userName, 0); // Set the finishTime to 0 for now, will update them in simulator
+            userArray[userArrayIndex] = user; // Add each user to the user array
+            userArrayIndex++;
+        }
+
+        jobArrayIndex++;
         
-        jobArray[index] = job; // Add each job to the job array
-        index++;
         totalProcessTime += duration;
     }
 }
@@ -194,6 +252,7 @@ int main(int argc, char **argv) {
 
     parseTextInput();
     scheduleProcess(&head, jobArray, totalProcessTime);
+    printUserSummary(userArray, userArrayIndex);
 
     free(userName);
     free(processId);
