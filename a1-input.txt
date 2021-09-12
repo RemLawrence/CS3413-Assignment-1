@@ -4,4 +4,4 @@ Mary	B	    2	    3
 Sue	    D	    5	    5
 Mary	C	    6	    2
 Alex    E       7       6
-Mary    F       14      2
+Aleks   F       14      2
