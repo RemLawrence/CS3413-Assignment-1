@@ -40,7 +40,6 @@ User createUser(char* userName, int finishTime) {
     User user;
     user.userName = userName;
     user.finishTime = finishTime;
-    //printf("User created %s\n", userName);
     return user;
 }
 
@@ -65,7 +64,6 @@ bool checkIfUserDuplicates(User* userArray, int userArrayLength, char* userName)
  */
 void updateUserFinishTime(User* userArray, char* userName, int userArrayLength, int finishTime) {
     int userArrayIndex = 0; // This index is for to iterate through the userArray
-    printf("updated finish time %d\n", finishTime);
     while(userArrayIndex != userArrayLength) {
         if (strcmp(userArray[userArrayIndex].userName, userName) == 0) {
             userArray[userArrayIndex].finishTime = finishTime;
@@ -121,7 +119,6 @@ struct node* createJobQueue(Job job) {
     newJobQueue -> job = job;
     newJobQueue -> priority = 0; // this is the first queue, so set the priority to 0 (default highest priority)
     newJobQueue -> next = NULL;
-    printf("Created job's userName %s\n", newJobQueue->job.userName);
     return newJobQueue; // node created and return it
 }
 
@@ -148,18 +145,25 @@ void insertJobQueue(struct node **head, Job job) {
             jobQueueInProcess -> next = newJobQueue;
         }
     }
-    else {
-        // If their arrival are not the same... then compare duration
+    else {// If their arrival are not the same... then compare duration
+        // 1. If the job's duration is shorter than the current one, then just simply make it the current one instead.
         if (jobQueueInProcess->job.duration > job.duration) {
             newJobQueue -> next = jobQueueInProcess;
             (*head) = newJobQueue;
         }
+        // 2. If the job has the same duration as the current one
+        // then First-Come-First-Serve. Add the new job to the correct position.
         else if (jobQueueInProcess->job.duration == job.duration) {
             // FCFS then
             if (jobQueueInProcess->job.arrival < newJobQueue->job.arrival) {
+                while(jobQueueInProcess -> next != NULL && jobQueueInProcess->next->job.duration < job.duration) {
+                jobQueueInProcess = jobQueueInProcess -> next; // iterate the linked list to find where the newJobQueue should go
+            }
+                newJobQueue -> next = jobQueueInProcess -> next;
                 jobQueueInProcess -> next = newJobQueue;
             }
         }
+        // 3. If the job's duration is larger than the current one, then just find the correct position for it in the queue.
         else {
             while (jobQueueInProcess -> next != NULL && jobQueueInProcess->next->job.duration < job.duration) {
                 jobQueueInProcess = jobQueueInProcess -> next; // iterate the linked list to find where the newJobQueue should go
@@ -181,7 +185,7 @@ void delete_highest_priority(struct node** head) {
     }
 }
 
-// A Time simulator for deciding the job queue using SJF
+// A Time simulator for processing the job priority queue.
 void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
 
     int time = jobArray[0].arrival; // Timer. (Will start from 2)
@@ -211,10 +215,8 @@ void scheduleProcess(struct node **head, Job* jobArray, int totalProcessTime) {
             
         }
         else {
-            //printf("%d\n", (*head)->job.duration);
             // If the current job is done, deque it (this job is being processed in the last time)
             if((*head)->job.duration == 0) {
-                //printf("%s finished at %d\n", userArray[userArrayIndex].userName, userArray[userArrayIndex].finishTime);
                 updateUserFinishTime(userArray, (*head)->job.userName, userArrayIndex, time); // Update user's finish time
                 delete_highest_priority(head);
             }
