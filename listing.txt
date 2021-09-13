@@ -1,12 +1,3 @@
-/*******************************************************
- *	a1.c
- *  The program for simulating operating systems serviced users
- *  by scheduling jobs using Shortest-Job-First algorithm.
- *  
- *  CS3413 Assignment 1
- *	Created by Micah Hanmin Wang #3631308
- ******************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
