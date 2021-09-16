@@ -111,6 +111,8 @@ int userArrayIndex = 0; // This index is used for tracking the User index (essen
 int totalProcessTime = 0; // Added the duration for all jobs.
 struct node *head; // Pointer to the head of the priority queue(linked list)
 
+bool shouldProcess = true; // Used for error checking
+
 // A Linked List
 struct node
 {
@@ -259,6 +261,11 @@ void parseTextInput() {
         processId = (char*)malloc(sizeof(char)*20);
         sscanf(line, "%s %s %d %d", userName, processId, &arrival, &duration);
 
+        if(arrival < 0 || duration <= 0) {
+            shouldProcess = false;
+            return;
+        }
+
         Job job = createJob(userName, processId, arrival, duration);
         jobArray[jobArrayIndex] = job; // Add each job to the job array
 
@@ -283,8 +290,14 @@ int main(int argc, char **argv) {
 
     parseTextInput();
 
-    scheduleProcess(&head, jobArray, totalProcessTime);
-    printUserSummary(userArray, userArrayIndex);
+    if(shouldProcess) {
+        scheduleProcess(&head, jobArray, totalProcessTime);
+        printUserSummary(userArray, userArrayIndex);
+    }
+    else{
+        printf("Oops, something is wrong in your input!\nJob's duration should be more than 0 and its arrival can't be negative number!\n");
+    }
+    
 
     free(userName);
     free(processId);
